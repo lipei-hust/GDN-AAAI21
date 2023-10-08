@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -27,6 +25,7 @@ def get_batch_edge_index(org_edge_index, batch_num, node_num):
 
 
 class OutLayer(nn.Module):
+    """最终的输出层为多层感知机，添加 layer_num-1 层的[nn.Linear, nn.BatchNorm1d, nn.ReLU]，最后添加一层线性层"""
     def __init__(self, in_num, node_num, layer_num, inter_num = 512):
         super(OutLayer, self).__init__()
 
@@ -60,6 +59,7 @@ class OutLayer(nn.Module):
 
 
 class GNNLayer(nn.Module):
+    """标准的GNN层，包含了消息传递、标准化层和relu层"""
     def __init__(self, in_channel, out_channel, inter_dim=0, heads=1, node_num=100):
         super(GNNLayer, self).__init__()
 
@@ -94,10 +94,10 @@ class GDN(nn.Module):
 
 
         embed_dim = dim
-        self.embedding = nn.Embedding(node_num, embed_dim)
+        self.embedding = nn.Embedding(node_num, embed_dim) #每个节点（指标）的特征为dim维
         self.bn_outlayer_in = nn.BatchNorm1d(embed_dim)
 
-
+        # 构建GNN层
         edge_set_num = len(edge_index_sets)
         self.gnn_layers = nn.ModuleList([
             GNNLayer(input_dim, dim, inter_dim=dim+embed_dim, heads=1) for i in range(edge_set_num)
@@ -118,6 +118,7 @@ class GDN(nn.Module):
         self.init_params()
     
     def init_params(self):
+        """初始化嵌入向量的权重"""
         nn.init.kaiming_uniform_(self.embedding.weight, a=math.sqrt(5))
 
 

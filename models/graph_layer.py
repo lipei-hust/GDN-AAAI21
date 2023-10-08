@@ -62,6 +62,7 @@ class GraphLayer(MessagePassing):
         edge_index, _ = add_self_loops(edge_index,
                                        num_nodes=x[1].size(self.node_dim))
 
+        # 消息传递
         out = self.propagate(edge_index, x=x, embedding=embedding, edges=edge_index,
                              return_attention_weights=return_attention_weights)
 
@@ -84,9 +85,11 @@ class GraphLayer(MessagePassing):
                 edges,
                 return_attention_weights):
 
+        # i, j节点的输入特征
         x_i = x_i.view(-1, self.heads, self.out_channels)
         x_j = x_j.view(-1, self.heads, self.out_channels)
 
+        # 如果存在嵌入特征，则拼接输入特征和嵌入特征
         if embedding is not None:
             embedding_i, embedding_j = embedding[edge_index_i], embedding[edges[0]]
             embedding_i = embedding_i.unsqueeze(1).repeat(1,self.heads,1)
@@ -96,7 +99,7 @@ class GraphLayer(MessagePassing):
             key_j = torch.cat((x_j, embedding_j), dim=-1)
 
 
-
+        # 计算注意力权重系数
         cat_att_i = torch.cat((self.att_i, self.att_em_i), dim=-1)
         cat_att_j = torch.cat((self.att_j, self.att_em_j), dim=-1)
 
